@@ -2,9 +2,7 @@ name: Deploy to Production
 
 on:
   repository_dispatch:
-    types: 
-      - deploy-backend
-      - deploy-frontend   
+    types: [deploy-backend, deploy-frontend]
 
 jobs:
   deploy:
