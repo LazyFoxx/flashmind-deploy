@@ -1,14 +1,16 @@
 version: '3.9'
 
 services:
-  flashmind:
-    image: yourdockerhubusername/flashmind-flashmind:latest  # замените на реальный username
-    container_name: flashmind
+  backend:
+    image: lazyfoxx/flashmind-backend:latest  # замените на реальный username
+    container_name: flashmind-backend
     restart: unless-stopped
     ports:
-      - "80:3000"  # или какой порт использует ваш сервис внутри контейнера
+      - "8000:8000"
     environment:
       - NODE_ENV=production
+    
+    
       # добавьте другие переменные окружения при необходимости
     # volumes:
     #   - ./data:/app/data  # если нужны persistent данные
