@@ -20,8 +20,9 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           port: ${{ secrets.SERVER_PORT }}  # опционально, по умолчанию 22
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          debug: true
           script: |
-            cd /opt/flashmind-deploy  # укажите реальный путь на сервере
+            cd flashmind-deploy  # укажите реальный путь на сервере
             git pull origin main      # обновляем конфиги (если изменились)
             docker compose pull ${{ github.event.client_payload.service }}
             docker compose up -d ${{ github.event.client_payload.service }}
