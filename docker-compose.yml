@@ -1,0 +1,30 @@
+version: '3.9'
+
+services:
+  flashmind:
+    image: yourdockerhubusername/flashmind-flashmind:latest  # замените на реальный username
+    container_name: flashmind
+    restart: unless-stopped
+    ports:
+      - "80:3000"  # или какой порт использует ваш сервис внутри контейнера
+    environment:
+      - NODE_ENV=production
+      # добавьте другие переменные окружения при необходимости
+    # volumes:
+    #   - ./data:/app/data  # если нужны persistent данные
+
+  # Пример добавления других сервисов в будущем:
+  # backend:
+  #   image: otheruser/anki-clone-backend:latest
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - database
+
+  # database:
+  #   image: postgres:16
+  #   restart: unless-stopped
+  #   volumes:
+  #     - pgdata:/var/lib/postgresql/data
+
+# volumes:
+#   pgdata:
