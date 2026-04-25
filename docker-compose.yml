@@ -1,32 +1,82 @@
 version: '3.9'
 
 services:
-  backend:
-    image: lazyfoxx/flashmind-backend:latest  # замените на реальный username
-    container_name: flashmind-backend
+  auth:
+    image: lazyfoxx/flashmind-auth:${TAG:-latest}
+    container_name: backend-auth
     restart: unless-stopped
+    env_file:
+      - .env.auth
     ports:
       - "8000:8000"
+    depends_on:
+      auth-postgres:
+        condition: service_healthy
+      auth-redis:
+        condition: service_started
+    secrets:
+      - jwt_private_key
+      - jwt_public_key
+    networks:
+      - auth-network
+      - app-network
+    command: sh -c "
+      alembic upgrade head &&
+      uvicorn src.main:app --host 0.0.0.0 --port 8000
+      "
+  rabbitmq:
+    image: "rabbitmq:management"
+    ports:
+      - "5672:5672"   # Порт RabbitMQ для обмена сообщениями
+      - "15672:15672" # Веб-менеджер RabbitMQ для мониторинга
+    networks:
+      - app-network
+  auth-postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    env_file:
+      - .env.auth
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"  # другой порт, чтобы не конфликтовать с локальной БД
+    networks:
+      - auth-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth-redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    env_file:
+      - .env.auth
     environment:
-      - NODE_ENV=production
-    
-    
-      # добавьте другие переменные окружения при необходимости
-    # volumes:
-    #   - ./data:/app/data  # если нужны persistent данные
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    command: redis-server
+      --appendonly yes
+      --requirepass "${REDIS_PASSWORD}"
+    volumes:
+      - redis_data_dev:/data
+    ports:
+      - "6380:6379"
+    networks:
+      - auth-network
 
-  # Пример добавления других сервисов в будущем:
-  # backend:
-  #   image: otheruser/anki-clone-backend:latest
-  #   restart: unless-stopped
-  #   depends_on:
-  #     - database
+volumes:
+  postgres_data_auth:
+  redis_data_auth:
 
-  # database:
-  #   image: postgres:16
-  #   restart: unless-stopped
-  #   volumes:
-  #     - pgdata:/var/lib/postgresql/data
+networks:
+  auth-network:
+    driver: bridge
+  app-network:
+    driver: bridge
 
-# volumes:
-#   pgdata:
+secrets:
+  jwt_private_key:
+    file: ./keys/private_key.pem
+  jwt_public_key:
+    file: ./keys/public_key.pem

@@ -24,6 +24,11 @@ jobs:
           script: |
             cd flashmind-deploy  # укажите реальный путь на сервере
             git pull origin main      # обновляем конфиги (если изменились)
+
+            # Создаём/обновляем .env.prod из секрета (рекомендуется)
+            echo "${{ secrets.AUTH_SERVICE_ENV_PROD }}" > .env.auth
+
+
             docker compose pull ${{ github.event.client_payload.service }}
             docker compose up -d ${{ github.event.client_payload.service }}
-            docker system prune -f --volumes  # очищаем старые образы и volumes (опционально)
+            docker system prune -f --filter "until=48h"
