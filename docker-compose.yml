@@ -37,7 +37,7 @@ services:
     env_file:
       - .env.auth
     volumes:
-      - postgres_data_dev:/var/lib/postgresql/data
+      - postgres_data_auth:/var/lib/postgresql/data
     ports:
       - "5433:5432"  # другой порт, чтобы не конфликтовать с локальной БД
     networks:
@@ -59,7 +59,7 @@ services:
       --appendonly yes
       --requirepass "${REDIS_PASSWORD}"
     volumes:
-      - redis_data_dev:/data
+      - redis_data_auth:/data
     ports:
       - "6380:6379"
     networks:
