@@ -53,9 +53,7 @@ jobs:
               
               # Если папка уже есть, обновляем с репозитория
               cd flashmind-deploy
-              git fetch origin
-              git checkout prod   # или main
-              git pull origin prod --ff-only
+              git pull origin main
             fi
 
             echo "✅ Текущая директория: $(pwd)"
