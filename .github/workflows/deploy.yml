@@ -22,13 +22,60 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           debug: true
           script: |
-            cd flashmind-deploy  # укажите реальный путь на сервере
-            git pull origin main      # обновляем конфиги (если изменились)
+            # cd flashmind-deploy  # укажите реальный путь на сервере
+            # git pull origin main      # обновляем конфиги (если изменились)
 
-            # Создаём/обновляем .env.prod из секрета (рекомендуется)
-            echo "${{ secrets.AUTH_SERVICE_ENV_PROD }}" > .env.auth
+            # # Создаём/обновляем .env.prod из секрета (рекомендуется)
+            # echo "${{ secrets.AUTH_SERVICE_ENV_PROD }}" > .env.auth
 
 
-            docker compose pull ${{ github.event.client_payload.service }}
-            docker compose up -d ${{ github.event.client_payload.service }}
-            docker system prune -f --filter "until=48h"
+            # docker compose pull ${{ github.event.client_payload.service }}
+            # docker compose up -d ${{ github.event.client_payload.service }}
+            # docker system prune -f --filter "until=48h"
+
+
+            set -e
+  
+            # Переходим в домашнюю папку
+            cd ~
+            
+            # Проверяем, существует ли папка flashmind-deploy
+            if [ ! -d "flashmind-deploy" ]; then
+              echo "✅ Папка flashmind-deploy не найдена, клонируем репозиторий..."
+              
+              # Клонируем репозиторий на сервер
+              git clone https://github.com/lazyfoxx/flashmind-deploy.git flashmind-deploy
+              
+              # Переходим в клонированную папку
+              cd flashmind-deploy
+            else
+              echo "✅ Папка flashmind-deploy найдена, обновляем репозиторий..."
+              
+              # Если папка уже есть, обновляем с репозитория
+              cd flashmind-deploy
+              git fetch origin
+              git checkout prod   # или main
+              git pull origin prod --ff-only
+            fi
+
+            echo "✅ Текущая директория: $(pwd)"
+            echo "✅ Текущий пользователь: $(whoami)"
+            echo "✅ Git статус перед обновлением:"
+            git status --porcelain -b || echo "Git не найден в этой папке"
+            
+            # Создаём .env.auth правильно (многострочный секрет)
+            cat > .env.auth << 'EOF'
+            ${{ secrets.AUTH_ENV_PROD }}
+            EOF
+            
+            echo "✅ .env.auth создан"
+            
+            # Деплой
+            docker compose pull auth
+            docker compose up -d auth
+            
+            echo "✅ Деплой auth завершён"
+            docker compose ps
+            docker compose logs --tail=20 auth
+
+
