@@ -62,9 +62,15 @@ jobs:
             git status --porcelain -b || echo "Git не найден в этой папке"
             
             # Создаём .env.auth правильно (многострочный секрет)
-            cat > .env.auth << 'EOF'
-            ${{ secrets.AUTH_ENV_PROD }}
-            EOF
+            # cat > .env.auth << 'EOF'
+            # ${{ secrets.AUTH_ENV_PROD }}
+            # EOF
+
+            - name: Create .env.auth from secret
+            run: |
+            printf '%s\n' "${{ secrets.AUTH_ENV_PROD }}" > .env.auth
+            echo "✅ .env.auth создан, размер: $(wc -c < .env.auth) байт"
+            cat .env.auth | sed 's/=.*/=***/g'   # скрываем значения для лога
             
             echo "✅ .env.auth создан"
             
