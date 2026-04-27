@@ -49,18 +49,7 @@ jobs:
             echo "✅ Текущий пользователь: $(whoami)"
             echo "✅ Git статус перед обновлением:"
             git status --porcelain -b || echo "Git не найден в этой папке"
-            
-            # === Создаём .env правильно из многострочного секрета ===
-            # cat > .env.auth << 'EOL'
-            # ${{ secrets.AUTH_SERVICE_ENV_PROD }}
-            # EOL
 
-            # echo "✅ .env создан, размер: $(wc -c < .env.auth) байт"
-            # echo "=== Ключи в .env.auth (без значений) ==="
-            # cut -d= -f1 .env.auth | sort || true
-            
-            # echo "✅ .env.auth создан"
-            
             # Деплой
             docker compose pull auth frontend
             docker compose up -d --wait auth frontend

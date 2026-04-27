@@ -15,8 +15,11 @@ services:
       auth-redis:
         condition: service_started
     secrets:
-      - jwt_private_key
-      - jwt_public_key
+      - source: jwt_private_key
+        mode: 0444
+      - source: jwt_public_key
+        mode: 0444
+    
     networks:
       - auth-network
       - app-network
@@ -91,3 +94,4 @@ secrets:
     file: ./keys/private_key.pem
   jwt_public_key:
     file: ./keys/public_key.pem
+
