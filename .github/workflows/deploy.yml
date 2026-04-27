@@ -52,7 +52,7 @@ jobs:
             
             # === Создаём .env правильно из многострочного секрета ===
             cat > .env << 'EOL'
-            ${{ secrets.AUTH_ENV_PROD }}
+            ${{ secrets.AUTH_SERVICE_ENV_PROD }}
             EOL
 
             echo "✅ .env создан, размер: $(wc -c < .env) байт"
