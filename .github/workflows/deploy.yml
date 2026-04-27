@@ -22,17 +22,6 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           debug: true
           script: |
-            # cd flashmind-deploy  # укажите реальный путь на сервере
-            # git pull origin main      # обновляем конфиги (если изменились)
-
-            # # Создаём/обновляем .env.prod из секрета (рекомендуется)
-            # echo "${{ secrets.AUTH_SERVICE_ENV_PROD }}" > .env.auth
-
-
-            # docker compose pull ${{ github.event.client_payload.service }}
-            # docker compose up -d ${{ github.event.client_payload.service }}
-            # docker system prune -f --filter "until=48h"
-
 
             set -e
   
@@ -61,16 +50,14 @@ jobs:
             echo "✅ Git статус перед обновлением:"
             git status --porcelain -b || echo "Git не найден в этой папке"
             
-            # Создаём .env.auth правильно (многострочный секрет)
-            # cat > .env.auth << 'EOF'
-            # ${{ secrets.AUTH_ENV_PROD }}
-            # EOF
+            # === Создаём .env правильно из многострочного секрета ===
+            cat > .env << 'EOL'
+            ${{ secrets.AUTH_ENV_PROD }}
+            EOL
 
-            - name: Create .env.auth from secret
-            run: |
-            printf '%s\n' "${{ secrets.AUTH_ENV_PROD }}" > .env.auth
-            echo "✅ .env.auth создан, размер: $(wc -c < .env.auth) байт"
-            cat .env.auth | sed 's/=.*/=***/g'   # скрываем значения для лога
+            echo "✅ .env создан, размер: $(wc -c < .env) байт"
+            echo "=== Ключи в .env (без значений) ==="
+            cut -d= -f1 .env | sort || true
             
             echo "✅ .env.auth создан"
             
