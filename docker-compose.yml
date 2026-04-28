@@ -42,7 +42,7 @@ services:
     volumes:
       - postgres_data_auth:/var/lib/postgresql/data
     ports:
-      - "5433:5432"  # другой порт, чтобы не конфликтовать с локальной БД
+      - "5433:5432"
     networks:
       - auth-network
     healthcheck:
@@ -79,14 +79,70 @@ services:
       timeout: 5s
       retries: 3
 
+  main:
+    image: lazyfoxx/flashmind-main:${TAG:-latest}
+    container_name: backend-main
+    restart: unless-stopped
+    env_file:
+      - .env.main
+    depends_on:
+      main-postgres:
+        condition: service_healthy
+      main-redis:
+        condition: service_started
+    ports:
+      - "8001:8000"
+    networks:
+      - main-network
+      - app-network
+    command: sh -c "
+      alembic upgrade head &&
+      uvicorn src.main:app --host 0.0.0.0 --port 8000
+      "
+
+  main-postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    env_file:
+      - .env.main
+    volumes:
+      - fastapi_main_service_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - main-network
+
+  main-redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    env_file:
+      - .env.main
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    command:
+    - /bin/sh
+    - -c
+    - redis-server --requirepass "$${REDIS_PASSWORD:?REDIS_PASSWORD variable is not set}"
+    volumes:
+      - fastapi_main_service_redis_data:/data
+    networks:
+      - main-network
+
 volumes:
   postgres_data_auth:
   redis_data_auth:
+  fastapi_main_service_postgres_data:
+  fastapi_main_service_redis_data:
 
 networks:
   auth-network:
     driver: bridge
   app-network:
+    driver: bridge
+  main-network:
     driver: bridge
 
 secrets:

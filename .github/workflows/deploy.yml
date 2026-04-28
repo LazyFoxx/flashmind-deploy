@@ -51,10 +51,10 @@ jobs:
             git status --porcelain -b || echo "Git не найден в этой папке"
 
             # Деплой
-            docker compose pull auth frontend
-            docker compose up -d --wait auth frontend
+            docker compose pull auth frontend main
+            docker compose up -d --wait auth frontend main
             
-            echo "✅ Деплой auth завершён"
+            echo "✅ Деплой завершён"
             docker compose ps
             docker compose logs --tail=20 auth
 
