@@ -132,10 +132,6 @@ services:
       timeout: 3s
       retries: 10
       start_period: 5s
-    command:
-    - /bin/sh
-    - -c
-    - redis-server --requirepass "$${REDIS_PASSWORD:?REDIS_PASSWORD variable is not set}"
     volumes:
       - fastapi_main_service_redis_data:/data
     networks:
