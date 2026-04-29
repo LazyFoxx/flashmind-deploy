@@ -39,10 +39,11 @@ jobs:
               cd flashmind-deploy
             else
               echo "✅ Папка flashmind-deploy найдена, обновляем репозиторий..."
-              
-              # Если папка уже есть, обновляем с репозитория
               cd flashmind-deploy
-              git pull origin main
+              
+              # Принудительное обновление:
+              git fetch origin main
+              git reset --hard origin/main  # Это надежнее pull для CI/CD
             fi
 
             echo "✅ Текущая директория: $(pwd)"
