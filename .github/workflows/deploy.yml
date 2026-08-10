@@ -54,9 +54,14 @@ jobs:
             # Деплой
             docker compose pull auth frontend main
             docker compose up -d --wait auth frontend main
+
+            # 🚀 АВТООЧИСТКА: Удаляем старые версии образов сразу после успешного старта
+            # Флаг -af удалит все неиспользуемые запущенными контейнерами образы
+            echo "🧹 Запуск очистки старых Docker-образов..."
+            docker image prune -af
             
             echo "✅ Деплой завершён"
             docker compose ps
-            docker compose logs --tail=20 auth
+            # docker compose logs --tail=20 auth
 
 
