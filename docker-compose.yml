@@ -1,7 +1,14 @@
-version: '3.9'
+# Шаблон для ограничения логов, чтобы диск больше не забивался
+x-logging: &default-logging
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "10m"
+      max-file: "3"
 
 services:
   auth:
+    <<: *default-logging
     image: lazyfoxx/flashmind-auth:${TAG:-latest}
     container_name: backend-auth
     restart: unless-stopped
@@ -19,7 +26,6 @@ services:
         mode: 0444
       - source: jwt_public_key
         mode: 0444
-    
     networks:
       - auth-network
       - app-network
@@ -27,14 +33,18 @@ services:
       alembic upgrade head &&
       uvicorn src.main:app --host 0.0.0.0 --port 8000
       "
+
   rabbitmq:
+    <<: *default-logging
     image: "rabbitmq:management"
     ports:
-      - "5672:5672"   # Порт RabbitMQ для обмена сообщениями
-      - "15672:15672" # Веб-менеджер RabbitMQ для мониторинга
+      - "5672:5672"
+      - "15672:15672"
     networks:
       - app-network
+
   auth-postgres:
+    <<: *default-logging
     image: postgres:16-alpine
     restart: unless-stopped
     env_file:
@@ -52,6 +62,7 @@ services:
       retries: 5
 
   auth-redis:
+    <<: *default-logging
     image: redis:7-alpine
     restart: unless-stopped
     env_file:
@@ -73,19 +84,22 @@ services:
       - "6380:6379"
     networks:
       - auth-network
+
   frontend:
+    <<: *default-logging
     image: lazyfoxx/flashmind-frontend:${TAG:-latest}
     container_name: frontend
     restart: unless-stopped
     ports:
       - "3000:80"
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost"]
+      test: ["CMD-SHELL", "nc -z localhost 80 || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
 
   main:
+    <<: *default-logging
     image: lazyfoxx/flashmind-main:${TAG:-latest}
     container_name: backend-main
     restart: unless-stopped
@@ -107,6 +121,7 @@ services:
       "
 
   main-postgres:
+    <<: *default-logging
     image: postgres:16-alpine
     restart: unless-stopped
     env_file:
@@ -122,6 +137,7 @@ services:
       - main-network
 
   main-redis:
+    <<: *default-logging
     image: redis:7-alpine
     restart: unless-stopped
     env_file:
